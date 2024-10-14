@@ -1,0 +1,37 @@
+services:
+  spotdl:
+    container_name: spotdl
+    image: spotdl/spotify-downloader:latest
+    command: web --host 0.0.0.0 --web-use-output-dir
+    environment:
+#      - PUID=1000
+#      - PGID=100
+      - HTTP_PORT=8800
+    volumes:
+      - /srv/dev-disk-by-uuid-9456ac49-ffdc-4dc8-a8d7-35c5b7c0e43d/Download:/music
+    ports:
+      - 8800:8800
+    restart: unless-stopped
+
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.spotdl.entrypoints=http"
+      - "traefik.http.routers.spotdl.rule=Host(`spot.bedart.com.pl`)"
+      - "traefik.http.middlewares.spotdl-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.spotdl-secure.entrypoints=https"
+      - "traefik.http.routers.spotdl-secure.rule=Host(`spot.bedart.com.pl`)"
+      - "traefik.http.routers.spotdl-secure.tls=true"
+      - "traefik.http.routers.spotdl-secure.service=spotdl"
+      - "traefik.http.services.spotdl.loadbalancer.server.port=8800"
+      - "traefik.docker.network=proxy"
+networks:
+  proxy:
+    external: true           
+        
+volumes:
+  spotdl:
+    external: true  
+    
+ 
